@@ -1,13 +1,36 @@
 package com.codepath.apps.basictwitter.models;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class User {
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+@Table(name = "Users")
+public class User extends Model {
+	@Column(name = "name")
 	private String name;
+	
+	
+	@Column(name = "user_id")
 	private long uid;
+	
+	@Column(name = "screenName")
 	private String screenName;
+	
+	@Column(name = "profileImageUrl")
 	private String profileImageUrl;
+	
+	
+	public User() {
+		super();
+	}
+	
+	public List<Tweet> tweets() {
+		return getMany(Tweet.class, "User");
+	}
 	
 	public static User fromJson(JSONObject jsonObject) {
 		User user = new User();
@@ -23,6 +46,7 @@ public class User {
 			e.printStackTrace();
 			return null;
 		}
+		user.save();
 		return user;
 	}
 

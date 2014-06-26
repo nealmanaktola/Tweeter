@@ -43,7 +43,10 @@ public class LoginActivity extends OAuthLoginActivity<TwitterClient> {
     // Uses the client to initiate OAuth authorization
     // This should be tied to a button used to login
     public void loginToRest(View view) {
-        getClient().connect();
+    	if (Utils.isOnline(this))
+    		getClient().connect();
+    	else
+    		Toast.makeText(this, "Internet Connectivity not found, try again", Toast.LENGTH_SHORT).show();
     }
 
 }

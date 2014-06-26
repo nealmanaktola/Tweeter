@@ -33,9 +33,19 @@ public class TimelineActivity extends FragmentActivity implements ComposeDialogL
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_timeline);
 		client = TwitterApplication.getRestClient();
-		populateTimeline(1,-1,25);
-		
+		tweets = new ArrayList<Tweet>();
+		aTweets = new TweetArrayAdapter(this, tweets);
 		lvTweets = (PullToRefreshListView) findViewById(R.id.lvTweets);
+		
+		lvTweets.setAdapter(aTweets);
+			
+		Log.d("Arraylist", "Array " + tweets.toString());
+		ArrayList<Tweet> dbTweets = (ArrayList<Tweet>) Tweet.getAll();
+		
+		if (Utils.isOnline(this))
+			populateTimeline(1,-1,25);
+		else
+			aTweets.addAll(dbTweets);
 
 		lvTweets.setOnScrollListener(new EndlessScrollListener (){
 		
@@ -55,18 +65,22 @@ public class TimelineActivity extends FragmentActivity implements ComposeDialogL
 			@Override
 			public void onRefresh() {
 				// TODO Auto-generated method stub
-				
-				Tweet firstTweet = (Tweet) tweets.get(0);
-				long sinceId = firstTweet.getUid();
-				refreshTimeline(sinceId,-1,25);
+				if (Utils.isOnline(getApplicationContext()))
+				{
+					Tweet firstTweet = (Tweet) aTweets.getItem(0);
+					long sinceId = firstTweet.getUid();
+					refreshTimeline(sinceId,-1,25);
+				}
+				else
+				{
+					lvTweets.onRefreshComplete();
+					Toast.makeText(getApplicationContext(), "Not connected to Internet", Toast.LENGTH_SHORT).show();
+				}
 			}
 			
 		});
-		tweets = new ArrayList<Tweet>();
-		aTweets = new TweetArrayAdapter(this, tweets);
-		lvTweets.setAdapter(aTweets);
-	}
-	
+
+	}	
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.timeline_menu, menu);
@@ -95,7 +109,10 @@ public class TimelineActivity extends FragmentActivity implements ComposeDialogL
     		@Override
     		public void onFailure(Throwable arg0) {
     			// TODO Auto-generated method stub
-    			Toast.makeText(getApplicationContext(), "Failure", Toast.LENGTH_SHORT).show();
+    			if (!Utils.isOnline(getApplicationContext()))
+    				Toast.makeText(getApplicationContext(), "Failed: Not Connected to Internet", Toast.LENGTH_SHORT).show();
+    			else
+    				Toast.makeText(getApplicationContext(), "Failed", Toast.LENGTH_SHORT).show();
     		}
     	}, tweetBody);
 		
@@ -146,4 +163,5 @@ public class TimelineActivity extends FragmentActivity implements ComposeDialogL
 		});
 
 	}
+	
 }

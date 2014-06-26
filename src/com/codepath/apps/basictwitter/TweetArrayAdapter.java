@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.codepath.apps.basictwitter.models.Tweet;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 public class TweetArrayAdapter extends ArrayAdapter<Tweet> {
 
@@ -57,15 +58,17 @@ public class TweetArrayAdapter extends ArrayAdapter<Tweet> {
 		TextView tvUserName = (TextView) v.findViewById(R.id.tvUserName);
 		TextView tvBody = (TextView) v.findViewById(R.id.tvBody);
 		TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
-		
+		TextView tvScreenName = (TextView) v.findViewById(R.id.tvScreenName);
 		ImageView ivProfileImage = (ImageView) v.findViewById(R.id.ivProfileImage);
 		ivProfileImage.setImageResource(android.R.color.transparent);
 		
+;
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		imageLoader.displayImage(tweet.getUser().getProfileImageUrl(), ivProfileImage);
-		tvUserName.setText(tweet.getUser().getScreenName());
+		tvScreenName.setText("@" + tweet.getUser().getScreenName());
 		tvBody.setText(tweet.getBody());
 		tvDate.setText(getRelativeTimeAgo(tweet.getCreatedAt()));
+		tvUserName.setText(tweet.getUser().getName());
 		
 		return v;
 		
