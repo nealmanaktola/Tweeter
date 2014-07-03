@@ -13,3 +13,4 @@ User can click on the profile image in any tweet to see another user's profile.
 User can see picture, tagline, # of followers, # of following, and tweets of clicked user.  
 Profile view should include that user's timeline  
  
+![alt text](https://raw.githubusercontent.com/nealmanaktola/Tweeter/master/Twitter.gif "Logo Title Text 1")
