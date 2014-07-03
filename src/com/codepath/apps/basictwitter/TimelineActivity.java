@@ -1,86 +1,65 @@
 package com.codepath.apps.basictwitter;
 
-import java.util.ArrayList;
-
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import android.app.FragmentManager;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.codepath.apps.basictwitter.ComposeDialog.ComposeDialogListener;
-import com.codepath.apps.basictwitter.models.Tweet;
+import com.codepath.apps.basictwitter.fragments.HomeTimelineFragment;
+import com.codepath.apps.basictwitter.fragments.MentionsTimelineFragment;
+import com.codepath.apps.basictwitter.listeners.FragmentTabListener;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
-import eu.erikw.PullToRefreshListView;
-import eu.erikw.PullToRefreshListView.OnRefreshListener;
-
-public class TimelineActivity extends FragmentActivity implements ComposeDialogListener {
-	private TwitterClient client;
-	private ArrayList<Tweet> tweets;
-	private TweetArrayAdapter aTweets;
-	private PullToRefreshListView lvTweets;
+public class TimelineActivity extends FragmentActivity implements ComposeDialogListener{
 	
-	
+	TwitterClient client;
 	@Override 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_timeline);
 		client = TwitterApplication.getRestClient();
-		tweets = new ArrayList<Tweet>();
-		aTweets = new TweetArrayAdapter(this, tweets);
-		lvTweets = (PullToRefreshListView) findViewById(R.id.lvTweets);
+		setupTabs();
+		//fragmentTweetsList = (TweetsListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_timeline);
 		
-		lvTweets.setAdapter(aTweets);
-			
-		Log.d("Arraylist", "Array " + tweets.toString());
-		ArrayList<Tweet> dbTweets = (ArrayList<Tweet>) Tweet.getAll();
-		
-		if (Utils.isOnline(this))
-			populateTimeline(1,-1,25);
-		else
-			aTweets.addAll(dbTweets);
-
-		lvTweets.setOnScrollListener(new EndlessScrollListener (){
-		
-			@Override
-			public void onLoadMore(int page, int totalItemsCount) {
-				if (tweets.size() > 0)
-				{
-					Tweet lastTweet = (Tweet) lvTweets.getItemAtPosition(totalItemsCount -1);
-					long maxId = lastTweet.getUid() - 1;
-					populateTimeline(-1,maxId,25);
-				}
-			}			
-		});
-
-		lvTweets.setOnRefreshListener(new OnRefreshListener() {
-
-			@Override
-			public void onRefresh() {
-				// TODO Auto-generated method stub
-				if (Utils.isOnline(getApplicationContext()))
-				{
-					Tweet firstTweet = (Tweet) aTweets.getItem(0);
-					long sinceId = firstTweet.getUid();
-					refreshTimeline(sinceId,-1,25);
-				}
-				else
-				{
-					lvTweets.onRefreshComplete();
-					Toast.makeText(getApplicationContext(), "Not connected to Internet", Toast.LENGTH_SHORT).show();
-				}
-			}
-			
-		});
+//		Log.d("Arraylist", "Array " + tweets.toString());
 
 	}	
+	private void setupTabs() {
+		ActionBar actionBar = getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		actionBar.setDisplayShowTitleEnabled(true);
+
+		Tab tab1 = actionBar
+			.newTab()
+			.setText("Home")
+			.setIcon(R.drawable.ic_home)
+			.setTag("HomeTimelineFragment")
+			.setTabListener(
+				new FragmentTabListener<HomeTimelineFragment>(R.id.flContainer, this, "home",
+								HomeTimelineFragment.class));
+
+		actionBar.addTab(tab1);
+		actionBar.selectTab(tab1);
+
+		Tab tab2 = actionBar
+			.newTab()
+			.setText("Mentions")
+			.setIcon(R.drawable.ic_mentions)
+			.setTag("MentionsTimelineFragment")
+			.setTabListener(
+			    new FragmentTabListener<MentionsTimelineFragment>(R.id.flContainer, this, "mentions",
+								MentionsTimelineFragment.class));
+
+		actionBar.addTab(tab2);
+	}
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.timeline_menu, menu);
@@ -88,14 +67,21 @@ public class TimelineActivity extends FragmentActivity implements ComposeDialogL
     }
     private void showComposeDialog()
     {
-    	FragmentManager fm = getFragmentManager();
+    	FragmentManager fm = getSupportFragmentManager();
     	ComposeDialog composeDialog = ComposeDialog.newInstance("Compose Tweet");
     	composeDialog.show(fm,"fragment_compose");
     }
+    
 	public void onFinishComposeDialog(String tweetBody) {
 		Toast.makeText(this, "Tweeting, " + tweetBody, Toast.LENGTH_SHORT).show();
 		postTweet(tweetBody);
 	}
+	public void onProfileView(MenuItem mi) {
+		Intent i = new Intent(this, ProfileActivity.class);
+		i.putExtra("screen_name", "nealmanaktola");
+		startActivity(i);
+	}
+
     private void postTweet(String tweetBody) {
 		// TODO Auto-generated method stub
     	client.postTweet(new JsonHttpResponseHandler() {
@@ -103,8 +89,7 @@ public class TimelineActivity extends FragmentActivity implements ComposeDialogL
     		public void onSuccess(JSONObject tweetJson) {
     			// TODO Auto-generated method stub
     	    	Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_SHORT).show();
-    	    	tweets.add(0,Tweet.fromJSON(tweetJson));
-    	    	aTweets.notifyDataSetChanged();
+    	    	//fragmentTweetsList.add(Tweet.fromJSON(tweetJson));
     		}
     		@Override
     		public void onFailure(Throwable arg0) {
@@ -117,51 +102,13 @@ public class TimelineActivity extends FragmentActivity implements ComposeDialogL
     	}, tweetBody);
 		
 	}
+
+	
 	public void onComposeAction(MenuItem mi)
     {
     	showComposeDialog(); 	
     }
 	
-	public void loadTweets(int id)
-	{
-		
-	}
-	public void populateTimeline(long sinceId, long maxId, int count) {
-		client.getHomeTimeline(sinceId, maxId,count,new JsonHttpResponseHandler() {
-			@Override
-			public void onSuccess(JSONArray json) {
-				// TODO Auto-generated method stub
-				Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_SHORT);
-				aTweets.addAll(Tweet.fromJSONArray(json));
-			}
-			@Override
-			public void onFailure(Throwable e, String s) {
-				// TODO Auto-generated method stub
-				Toast.makeText(getApplicationContext(), "Fail", Toast.LENGTH_SHORT);
-				Log.d("debug", e.toString());
-				Log.d("debug", s.toString());
-			}
-		});
-	
-	}
-	public void refreshTimeline(long sinceId, long maxId, int count) {
-		client.getHomeTimeline(sinceId, maxId,count,new JsonHttpResponseHandler() {
-			@Override
-			public void onSuccess(JSONArray json) {
-				// TODO Auto-generated method stub
-				Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_SHORT);
-				tweets.addAll(0,Tweet.fromJSONArray(json));
-				aTweets.notifyDataSetChanged();
-				lvTweets.onRefreshComplete();
-			}
-			@Override
-			public void onFailure(Throwable e, String s) {
-				// TODO Auto-generated method stub
-				Log.d("debug", e.toString());
-				Log.d("debug", s.toString());
-			}
-		});
 
-	}
 	
 }

@@ -7,6 +7,7 @@ import android.content.Context;
 
 import com.codepath.oauth.OAuthBaseClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 /*
@@ -33,11 +34,18 @@ public class TwitterClient extends OAuthBaseClient {
     }
     
     public void getHomeTimeline(long sinceId, long maxId, int count,AsyncHttpResponseHandler handler) {
-    	
+    	String apiUrl = getApiUrl("statuses/home_timeline.json");
     	RequestParams params = setParams(sinceId,maxId,count);
-    	fetchTweets(params,handler);
+    	client.get(apiUrl, params, handler); 
    	
     }
+	public void getMentionsTimeline(long sinceId, long maxId, int count,
+			JsonHttpResponseHandler handler) {
+    	String apiUrl = getApiUrl("statuses/mentions_timeline.json");
+    	RequestParams params = setParams(sinceId,maxId,count);
+    	client.get(apiUrl, params, handler); 
+		
+	}
     public RequestParams setParams(long sinceId, long maxId, int count)
     {
     	RequestParams params = new RequestParams();
@@ -50,10 +58,19 @@ public class TwitterClient extends OAuthBaseClient {
     	
     	return params;
     }
-    public void fetchTweets(RequestParams params, AsyncHttpResponseHandler handler)
-    {
-    	String apiUrl = getApiUrl("statuses/home_timeline.json");
+    public void getUserTimeline(String screenName, long sinceId, long maxId, int count,AsyncHttpResponseHandler handler) {
+    	String apiUrl = getApiUrl("statuses/user_timeline.json");
+    	RequestParams params = setParams(sinceId,maxId,count);
+    	params.put("screen_name", screenName);
     	client.get(apiUrl, params, handler); 
+   	
+    }
+    public void getUserInfo(String screenName, AsyncHttpResponseHandler handler)
+    {
+    	String url = getApiUrl("users/show.json");
+    	RequestParams params = new RequestParams();
+    	params.put("screen_name", screenName);
+    	client.get(url,params,handler);
     }
     public void postTweet(AsyncHttpResponseHandler handler, String tweetBody)
     {
@@ -80,4 +97,6 @@ public class TwitterClient extends OAuthBaseClient {
      *    i.e client.get(apiUrl, params, handler);
      *    i.e client.post(apiUrl, params, handler);
      */
+
+
 }

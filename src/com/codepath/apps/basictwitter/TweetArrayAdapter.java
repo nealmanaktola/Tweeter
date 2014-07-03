@@ -6,9 +6,12 @@ import java.util.List;
 import java.util.Locale;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -16,7 +19,6 @@ import android.widget.TextView;
 
 import com.codepath.apps.basictwitter.models.Tweet;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 public class TweetArrayAdapter extends ArrayAdapter<Tweet> {
 
@@ -61,12 +63,24 @@ public class TweetArrayAdapter extends ArrayAdapter<Tweet> {
 		TextView tvScreenName = (TextView) v.findViewById(R.id.tvScreenName);
 		ImageView ivProfileImage = (ImageView) v.findViewById(R.id.ivProfileImage);
 		ivProfileImage.setImageResource(android.R.color.transparent);
+		ivProfileImage.setClickable(true);
+		ivProfileImage.setOnClickListener(new OnClickListener(){		
+			@Override
+			public void onClick(View v)
+			{
+				Log.d("click", v.getTag().toString());
+				Intent i = new Intent(getContext(),ProfileActivity.class);
+				i.putExtra("screen_name", v.getTag().toString());		
+				v.getContext().startActivity(i);
+			}
+		})
 		
 ;
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		imageLoader.displayImage(tweet.getUser().getProfileImageUrl(), ivProfileImage);
 		tvScreenName.setText("@" + tweet.getUser().getScreenName());
 		tvBody.setText(tweet.getBody());
+		ivProfileImage.setTag(tweet.getUser().getScreenName());
 		tvDate.setText(getRelativeTimeAgo(tweet.getCreatedAt()));
 		tvUserName.setText(tweet.getUser().getName());
 		

@@ -10,5 +10,6 @@
     <string name="foo_label">\@foo</string>
     <string name="body_label">This is the tweet body.</string>
     <string name="composeLbl">Compose</string>
+    <string name="title_activity_profile">ProfileActivity</string>
 
 </resources>
